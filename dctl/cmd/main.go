@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"time"
-
-//	"github.com/halfwit/demun/internal/command"
 )
 
 var (
@@ -17,14 +16,6 @@ var (
 	host = flag.String("r", "", "Host prefix for files")
 	port = flag.String("p", "9997", "Port to connect via")
 )
-
-func list(conn net.Conn) {
-	fmt.Fprintf(conn, "list %s\n", *tag)
-	scanner := bufio.NewScanner(conn)
-	for scanner.Scan() {
-		fmt.Printf("%s\n", scanner.Text())
-	}
-}
 
 func main() {
 	flag.Parse()
@@ -41,8 +32,17 @@ func main() {
 	// Add and list
 	switch (flag.Arg(0)) {
 	case "add":
+		fmt.Fprintf(conn, "add %s\n", *tag)
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			fmt.Fprintf(conn, "%s\n", scanner.Text())
+		}
 	case "list":
-		list(conn)
+		fmt.Fprintf(conn, "list %s\n", *tag)
+		scanner := bufio.NewScanner(conn)
+		for scanner.Scan() {
+			fmt.Printf("%s\n", scanner.Text())
+		}
 	}
 
 	conn.Close()

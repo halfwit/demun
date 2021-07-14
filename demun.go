@@ -43,7 +43,7 @@ func main() {
 	listen := make(chan net.Conn, 50)
 	go incoming(li, listen)
 
-	cmd := command.NewCommand() 
+	cmd := command.NewCommand()
 	if *debug {
 		cmd.Logger = log.Printf
 	}
@@ -55,7 +55,6 @@ func main() {
 		case <-interrupt:
 			return
 		case conn := <-listen:
-			log.Printf("incoming")
 			go cmd.Handle(conn)
 		}
 
