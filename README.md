@@ -35,15 +35,4 @@ dctl -t search list | dmenu -p 'select file' | plumb -i
 
 ### Demun
 
-We're wrapping github.com/takama/daemon for much of the heavier lifting. It's prescribed usage is simple for starting/stopping the daemon service
-
-```/bin/sh
-
-demun start - start the service
-demun stop - stop the service
-demun remove - remove the service
-demun status - return the status of the service
-demun install - create the service 
-
-```
-
+Demun simply wraps our db (currently just an in memory map) and provides a simple proto to modify and query it

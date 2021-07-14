@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	port = flag.String("p", ":9997", "Default port to listen on")
+	debug = flag.Bool("d", false, "Debug")
+	port = flag.String("p", ":9997", "Port to listen on")
 )
 
 func incoming(li net.Listener, listen chan <- net.Conn) {
@@ -42,16 +43,20 @@ func main() {
 	listen := make(chan net.Conn, 50)
 	go incoming(li, listen)
 
-	// Spin up our command listener
-	commands := make(chan command.Command)
-	go command.Listen(commands) 
+	cmd := command.NewCommand() 
+	if *debug {
+		cmd.Logger = log.Printf
+	}
+
+	go cmd.Listen()
 
 	for {
 		select {
 		case <-interrupt:
 			return
 		case conn := <-listen:
-			go command.Handle(commands, conn)
+			log.Printf("incoming")
+			go cmd.Handle(conn)
 		}
 
 	}

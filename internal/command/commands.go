@@ -8,36 +8,45 @@ import (
 )
 
 type Command struct {
-	Type string
-	Tag string
-	Entry *Entry
-	Result chan *Entry 
+	Logger	func(string, ...interface{})
+	cmds	chan *entry
 }
 
-type Entry struct {
-	Title	string
-	Tag string
-	Payload	string
-	Option	string
+// This is fairly sloppy, and would do well with a refactoring
+type entry struct {
+	name	string
+	data	string
+	tag	string
+	result	chan *entry
 }
 
-func Listen(commands chan Command) {
-	var data []*Entry
-	for cmd := range commands {
-		switch cmd.Type {
+func NewCommand() *Command {
+	return &Command{
+		Logger:	func(string, ...interface{}) {},
+		cmds: make(chan *entry),
+	}
+}
+
+func (command *Command) Listen() {
+	var data []*entry
+
+	command.Logger("Listening for commands")
+	for cmd := range command.cmds {
+		switch cmd.name {
 		case "add":
-			data = append(data, cmd.Entry) 
+			data = append(data, cmd)
 		case "list":
 			for _, item := range data {
-				if item.Tag == cmd.Tag {
-					cmd.Result <- item
+				if item.tag == cmd.tag {
+					cmd.result <- item
 				}
 			} 
+			close(cmd.result)
 		}
 	}	
 }
 
-func Handle(commands chan Command, conn net.Conn) {
+func (command *Command) Handle(conn net.Conn) {
 	defer conn.Close()
 
 	scanner := bufio.NewScanner(conn)
@@ -45,17 +54,18 @@ func Handle(commands chan Command, conn net.Conn) {
 		fmt.Fprintf(conn, "No input detected")
 		return
 	}
+
 	// Scan in the first line
 	target := scanner.Bytes()
 	if bytes.Contains(target, []byte("list")) {
-		result := make(chan *Entry)
-		commands <- Command{
-			Type: "list",
-			Tag: string(target[4:]),
-			Result: result,
+		result := make(chan *entry, 10)
+		command.cmds <- &entry{
+			name: "list",
+			tag: string(target[5:]),
+			result: result,
 		}
-		for entry := range result {
-			fmt.Fprintf(conn, "%s - %s - %s\n", entry.Title, entry.Payload, entry.Option)
+		for item := range result {
+			fmt.Fprintf(conn, "%s\n", item.data)
 		}
 		return
 	}	
@@ -65,15 +75,10 @@ func Handle(commands chan Command, conn net.Conn) {
 	}
 
 	for scanner.Scan() {
-		ln := scanner.Text()
-	 	entry := &Entry{
-			Title: "test",
-			Tag: string(target[3:]),
-			Payload: ln,
-		}
-		commands <- Command{
-			Type: "add",
-			Entry: entry,
+		command.cmds <- &entry{
+			name: "add",
+			tag: string(target[4:]),
+			data: scanner.Text(),
 		}
 	}
 }
