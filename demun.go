@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/halfwit/demun/internal/command"
-	"github.com/halfwit/demun/internal/service"
 )
 
 var (
@@ -28,20 +27,6 @@ func incoming(li net.Listener, listen chan <- net.Conn) {
 
 func main() {
 	flag.Parse()
-	service, err := service.NewService()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// We have a command, just run it and exit cleanly.
-	if flag.NArg() > 0 {
-		msg, err := service.Manage(flag.Arg(0))
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println(msg)
-		os.Exit(0)
-	}
 
 	// Create a listener for any signals
 	interrupt := make(chan os.Signal, 1)
