@@ -1,14 +1,16 @@
 # Demun - the dmenu daemon
 
-This listens on port 9997, and can be queried with dctl. the output of dctl can be passed to a dmenu / bemenu / rofi instance
-
 ## Wait, Why?
 
 I run some thin clients, which are at times physically disconnected with the media I want to populate a menu with. This facilitates locality-agnostic searches for content, as well as caching the content of sometimes expensive menu creation processes. On regular computers, these tend to hold very little to no penalty; but on a very low power machine, this makes or breaks usability.
 
-This was created in response to dsearch, available from me at https://github.com/halfwit/dsearch, to allow network transparent file selection on very slow machines such as rpis; as well to integrate cleanly with a networked plumber setup. 
+A simple `find ~/code -type f` on a bigger system, which is very convenient piped into a dmenu with a fuzzy match, would take upwards of 30 seconds on an Acer Aspire E15 I was working with. Now, a menu with > 10,000 entries was built, and runs instantly every time
+
+This was created in response to dsearch, available from me at https://github.com/halfwit/dsearch, to allow network transparent file selection on very slow machines such as rpis; as well to integrate cleanly with a networked plumber setup.
 
 ## Usage
+
+demun allows you to pre-compute menu entries, and share listings of file resources across the network.
 
 ### Dctl
 
@@ -27,6 +29,10 @@ demun
 - `-d` Debug mode
 - `-p <port>` Port to broadcast on (Default 9997)
 
+## BUGS
+
+- A max amount of around 5000 entries can be added per invocation of dctl add
+- 
 ## Proposed Usage
 
 Prior to writing, it's fun to brainstorm how things will work out. Here's a bit of that.
