@@ -40,7 +40,7 @@ func main() {
 	}
 	defer li.Close()
 
-	listen := make(chan net.Conn, 50)
+	listen := make(chan net.Conn)
 	go incoming(li, listen)
 
 	cmd := command.NewCommand()
@@ -55,6 +55,7 @@ func main() {
 		case <-interrupt:
 			return
 		case conn := <-listen:
+			cmd.Logger("New connection from %s\n", conn.RemoteAddr())
 			go cmd.Handle(conn)
 		}
 

@@ -9,7 +9,7 @@ import (
 
 type Command struct {
 	Logger	func(string, ...interface{})
-	cmds	chan *entry
+	cmds	chan entry
 }
 
 // This is fairly sloppy, and would do well with a refactoring
@@ -17,18 +17,18 @@ type entry struct {
 	name	string
 	data	string
 	tag	string
-	result	chan *entry
+	result	chan entry
 }
 
 func NewCommand() *Command {
 	return &Command{
 		Logger:	func(string, ...interface{}) {},
-		cmds: make(chan *entry),
+		cmds: make(chan entry),
 	}
 }
 
 func (command *Command) Listen() {
-	var data []*entry
+	var data []entry
 
 	command.Logger("Listening for commands")
 	for cmd := range command.cmds {
@@ -41,7 +41,7 @@ func (command *Command) Listen() {
 					cmd.result <- item
 				}
 			} 
-
+			command.Logger("Sending list for %s\n", cmd.tag)
 			close(cmd.result)
 		}
 	}	
@@ -51,7 +51,6 @@ func (command *Command) Handle(conn net.Conn) {
 	defer conn.Close()
 
 	scanner := bufio.NewScanner(conn)
-	// Big, oversized buffer may be enough
 	buf := make([]byte, 1024*1024)
 	scanner.Buffer(buf, 1024*1024)
 	if(!scanner.Scan()) {
@@ -62,8 +61,8 @@ func (command *Command) Handle(conn net.Conn) {
 	// Scan in the first line
 	target := scanner.Bytes()
 	if bytes.Contains(target, []byte("list")) {
-		result := make(chan *entry, 10)
-		command.cmds <- &entry{
+		result := make(chan entry)
+		command.cmds <- entry{
 			name: "list",
 			tag: string(target[5:]),
 			result: result,
@@ -82,8 +81,9 @@ func (command *Command) Handle(conn net.Conn) {
 		return
 	}
 
+	command.Logger("Adding entry for tag %s", target[4:])
 	for scanner.Scan() {
-		command.cmds <- &entry{
+		command.cmds <- entry{
 			name: "add",
 			tag: string(target[4:]),
 			data: scanner.Text(),

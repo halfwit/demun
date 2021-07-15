@@ -35,8 +35,12 @@ func main() {
 	case "add":
 		fmt.Fprintf(conn, "add %s\n", *tag)
 		scanner := bufio.NewScanner(os.Stdin)
+		buf := make([]byte, 1024*1024)
+		scanner.Buffer(buf, 1024*1024)
+
 		writer := bufio.NewWriter(conn)
 		for scanner.Scan() {
+			writer.WriteString(*host)
 			writer.Write(scanner.Bytes() )
 			writer.WriteByte('\n')
 		}
