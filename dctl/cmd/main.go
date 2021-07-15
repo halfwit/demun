@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"os"
+	"net"
 	"time"
 )
 
@@ -27,16 +27,21 @@ func main() {
 	}
 
 	// Make sure we don't block for long
-	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+	defer conn.Close()
 
 	// Add and list
 	switch (flag.Arg(0)) {
 	case "add":
 		fmt.Fprintf(conn, "add %s\n", *tag)
 		scanner := bufio.NewScanner(os.Stdin)
+		writer := bufio.NewWriter(conn)
 		for scanner.Scan() {
-			fmt.Fprintf(conn, "%s\n", scanner.Text())
+			writer.Write(scanner.Bytes() )
+			writer.WriteByte('\n')
 		}
+
+		writer.Flush()
 	case "list":
 		fmt.Fprintf(conn, "list %s\n", *tag)
 		scanner := bufio.NewScanner(conn)
@@ -44,6 +49,4 @@ func main() {
 			fmt.Printf("%s\n", scanner.Text())
 		}
 	}
-
-	conn.Close()
 }

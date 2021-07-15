@@ -41,6 +41,7 @@ func (command *Command) Listen() {
 					cmd.result <- item
 				}
 			} 
+
 			close(cmd.result)
 		}
 	}	
@@ -50,6 +51,9 @@ func (command *Command) Handle(conn net.Conn) {
 	defer conn.Close()
 
 	scanner := bufio.NewScanner(conn)
+	// Big, oversized buffer may be enough
+	buf := make([]byte, 1024*1024)
+	scanner.Buffer(buf, 1024*1024)
 	if(!scanner.Scan()) {
 		fmt.Fprintf(conn, "No input detected")
 		return
@@ -64,11 +68,15 @@ func (command *Command) Handle(conn net.Conn) {
 			tag: string(target[5:]),
 			result: result,
 		}
+		writer := bufio.NewWriter(conn)
 		for item := range result {
-			fmt.Fprintf(conn, "%s\n", item.data)
+			writer.WriteString(item.data)
+			writer.WriteByte('\n')
 		}
+
+		writer.Flush()
 		return
-	}	
+	}
 
 	if ! bytes.Contains(target, []byte("add")) {
 		return
