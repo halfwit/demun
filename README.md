@@ -8,6 +8,25 @@ I run some thin clients, which are at times physically disconnected with the med
 
 This was created in response to dsearch, available from me at https://github.com/halfwit/dsearch, to allow network transparent file selection on very slow machines such as rpis; as well to integrate cleanly with a networked plumber setup. 
 
+## Usage
+
+### Dctl
+
+dctl [add|list]
+- `-p <port>` Port to listen on
+- `-r <user@host>` Dial string for remote resource, prefixed to entries if set
+- `-s <addr>` Address of running demun
+- `-t <tag>` Tag to use (default "path")
+
+dctl list will return all entries related to a given tag (by default, the "path" tag)
+dctl add will read from stdin, and add entries to the given tag
+
+### Demun
+
+demun
+- `-d` Debug mode
+- `-p <port>` Port to broadcast on (Default 9997)
+
 ## Proposed Usage
 
 Prior to writing, it's fun to brainstorm how things will work out. Here's a bit of that.
