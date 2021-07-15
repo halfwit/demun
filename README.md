@@ -31,8 +31,8 @@ demun
 
 ## BUGS
 
-- A max amount of around 5000 entries can be added per invocation of dctl add
-- 
+- A max amount of around 5000 entries can be added per invocation of `dctl add`
+
 ## Proposed Usage
 
 Prior to writing, it's fun to brainstorm how things will work out. Here's a bit of that.
