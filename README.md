@@ -14,14 +14,17 @@ demun allows you to pre-compute menu entries, and share listings of file resourc
 
 ### Dctl
 
-dctl [add|list]
+dctl [add|list|remove <regex>]
 - `-p <port>` Port to listen on
 - `-r <user@host>` Dial string for remote resource, prefixed to entries if set
 - `-s <addr>` Address of running demun
 - `-t <tag>` Tag to use (default "path")
 
-dctl list will return all entries related to a given tag (by default, the "path" tag)
-dctl add will read from stdin, and add entries to the given tag
+- dctl list will return all entries related to a given tag (by default, the "path" tag)
+- dctl add will read from stdin, and add entries to the given tag
+- dctl remove will remove all content matching supplied regex
+  - All matching entries in all tags will be removed
+  - Invalid regex will return an error
 
 ### Demun
 

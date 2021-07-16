@@ -52,5 +52,14 @@ func main() {
 		for scanner.Scan() {
 			fmt.Printf("%s\n", scanner.Text())
 		}
+	case "remove":
+		if flag.NArg() <= 1 {
+			log.Fatal("Remove must be supplied a regex to match entries")
+		}
+		fmt.Fprintf(conn, "remove %s\n", flag.Arg(1))
+		scanner := bufio.NewScanner(conn)
+		for scanner.Scan() {
+			fmt.Printf("%s\n", scanner.Text())
+		}
 	}
 }

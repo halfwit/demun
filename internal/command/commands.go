@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"net"
+	"regexp"
 )
 
 type Command struct {
@@ -12,11 +13,18 @@ type Command struct {
 	cmds	chan entry
 }
 
+var (
+	add = []byte("add")
+	list = []byte("list")
+	remove = []byte("remove")
+)
+
 // This is fairly sloppy, and would do well with a refactoring
 type entry struct {
 	name	string
-	data	string
+	data 	string
 	tag	string
+	regexp	*regexp.Regexp
 	result	chan entry
 }
 
@@ -43,6 +51,15 @@ func (command *Command) Listen() {
 			} 
 			command.Logger("Sending list for %s\n", cmd.tag)
 			close(cmd.result)
+		case "remove":
+			count := 0
+			for _, item := range data {
+				if ! cmd.regexp.MatchString(item.data) {
+					data[count] = item
+					count++
+				}
+			}
+			data = data[:count]
 		}
 	}	
 }
@@ -60,7 +77,7 @@ func (command *Command) Handle(conn net.Conn) {
 
 	// Scan in the first line
 	target := scanner.Bytes()
-	if bytes.Contains(target, []byte("list")) {
+	if bytes.HasPrefix(target, list) {
 		result := make(chan entry)
 		command.cmds <- entry{
 			name: "list",
@@ -77,7 +94,20 @@ func (command *Command) Handle(conn net.Conn) {
 		return
 	}
 
-	if ! bytes.Contains(target, []byte("add")) {
+	if bytes.HasPrefix(target, remove) {
+		rx, err := regexp.Compile(string(target[7:]))
+		if err != nil {
+			fmt.Fprintf(conn, "%s\n", "Invalid regex supplied")
+			return
+		}
+
+		command.cmds <- entry{
+			name: "remove",
+			regexp: rx,
+		}
+	}
+
+	if ! bytes.HasPrefix(target, add) {
 		return
 	}
 
