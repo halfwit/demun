@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+	"sort"
 )
 
 type Command struct {
@@ -28,21 +29,26 @@ type entry struct {
 	result	chan entry
 }
 
+type entries []entry
+
+func (e entries) Len()	int		{ return len(e) }
+func (e entries) Swap(i, j int)		{ e[i], e[j] = e[j], e[i] }
+func (e entries) Less(i, j int) bool	{ return e[i].data < e[j].data } 
 func NewCommand() *Command {
 	return &Command{
 		Logger:	func(string, ...interface{}) {},
 		cmds: make(chan entry),
 	}
 }
-
 func (command *Command) Listen() {
-	var data []entry
+	var data entries 
 
 	command.Logger("Listening for commands")
 	for cmd := range command.cmds {
 		switch cmd.name {
 		case "add":
 			data = append(data, cmd)
+			sort.Sort(data)
 		case "list":
 			for _, item := range data {
 				if item.tag == cmd.tag {
@@ -84,7 +90,7 @@ func (command *Command) Handle(conn net.Conn) {
 			tag: string(target[5:]),
 			result: result,
 		}
-		writer := bufio.NewWriter(conn)
+		writer := bufio.NewWriterSize(conn, 1024*1024)
 		for item := range result {
 			writer.WriteString(item.data)
 			writer.WriteByte('\n')

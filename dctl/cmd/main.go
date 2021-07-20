@@ -38,7 +38,7 @@ func main() {
 		buf := make([]byte, 1024*1024)
 		scanner.Buffer(buf, 1024*1024)
 
-		writer := bufio.NewWriter(conn)
+		writer := bufio.NewWriterSize(conn, 1024*1024)
 		for scanner.Scan() {
 			writer.WriteString(*host)
 			writer.Write(scanner.Bytes() )
